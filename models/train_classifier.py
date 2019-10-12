@@ -1,16 +1,44 @@
-import sys
-
+from sqlalchemy import create_engine
+import pandas as pd
+import re
+import nltk
+import pickle
+from nltk.corpus import stopwords
+nltk.download(['punkt', 'stopwords', 'wordnet'])
+from nltk.stem.wordnet import WordNetLemmatizer
+from sklearn.pipeline import Pipeline
+from sklearn.multioutput import MultiOutputClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+from sklearn.model_selection import GridSearchCV
 
 def load_data(database_filepath):
-    pass
+    engine = create_engine('sqlite:///{}'.format(database_filepath))
+    df = pd.read_sql_table('cleaned_message_data', engine)
+    X = df['message']
+    Y = df.drop(columns=['id', 'original', 'genre', 'message'], axis=1)
+    return X, Y
 
 
 def tokenize(text):
-    pass
+    text = text.lower()
+    text = re.sub(r"[^a-z1-9]", " ", text)
+    words = nltk.word_tokenize(text)
+    words = [w for w in words if w not in stopwords.words("english")]
+    lemmed = [WordNetLemmatizer().lemmatize(w) for w in words]
+    
+    return lemmed
 
 
 def build_model():
-    pass
+    pipeline = Pipeline([
+                ('vect', CountVectorizer(tokenizer=tokenize)),
+                ('tfidf', TfidfTransformer()),
+                ('classifier', MultiOutputClassifier(RandomForestClassifier()))
+                ])
+    return pipeline
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
@@ -25,7 +53,7 @@ def main():
     if len(sys.argv) == 3:
         database_filepath, model_filepath = sys.argv[1:]
         print('Loading data...\n    DATABASE: {}'.format(database_filepath))
-        X, Y, category_names = load_data(database_filepath)
+        X, Y = load_data(database_filepath)
         X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
         
         print('Building model...')
