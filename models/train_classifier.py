@@ -38,15 +38,22 @@ def build_model():
                 ('tfidf', TfidfTransformer()),
                 ('classifier', MultiOutputClassifier(RandomForestClassifier()))
                 ])
-    return pipeline
+    parameters = {
+        'classifier__estimator__n_estimators': [50, 100]
+    }
+
+    cv = GridSearchCV(pipeline, param_grid=parameters) 
+    return cv
 
 
-def evaluate_model(model, X_test, Y_test, category_names):
-    pass
+def evaluate_model(model, X_test, Y_test):
+    preds = model.predict(X_test)
+    gridsearch_prediction_df = pd.DataFrame(data=gridsearch_preds, columns=Y_test.columns)
 
 
 def save_model(model, model_filepath):
-    pass
+    with open(model_filepath, 'wb') as f:
+        pickle.dump(model, f)
 
 
 def main():
@@ -63,7 +70,7 @@ def main():
         model.fit(X_train, Y_train)
         
         print('Evaluating model...')
-        evaluate_model(model, X_test, Y_test, category_names)
+        evaluate_model(model, X_test, Y_test)
 
         print('Saving model...\n    MODEL: {}'.format(model_filepath))
         save_model(model, model_filepath)
