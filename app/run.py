@@ -26,11 +26,11 @@ def tokenize(text):
     return clean_tokens
 
 # load data
-engine = create_engine('sqlite:///../data/YourDatabaseName.db')
-df = pd.read_sql_table('YourTableName', engine)
+engine = create_engine('sqlite:///data/DisasterResponse.db')
+df = pd.read_sql_table('cleaned_message_data', engine)
 
 # load model
-model = joblib.load("../models/your_model_name.pkl")
+model = joblib.load("models/classifier.pkl")
 
 
 # index webpage displays cool visuals and receives user input text for model
@@ -45,6 +45,11 @@ def index():
     
     # create visuals
     # TODO: Below is an example - modify to create your own visuals
+    categories = df.drop(columns=['id', 'original', 'genre', 'message', 'related'], axis=1)
+    percentages = categories.sum()/len(categories)
+    category_names = list(categories.columns)
+    
+    
     graphs = [
         {
             'data': [
@@ -63,7 +68,26 @@ def index():
                     'title': "Genre"
                 }
             }
-        }
+        },
+        {
+            'data': [
+                Bar(
+                    x=category_names,
+                    y=percentages
+                )
+            ],
+
+            'layout': {
+                'title': 'Distribution of Disasters',
+                'yaxis': {
+                    'title': "Percentage"
+                },
+                'xaxis': {
+                    'title': "Categories"
+                }
+            }
+        },
+        
     ]
     
     # encode plotly graphs in JSON

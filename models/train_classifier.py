@@ -1,4 +1,5 @@
 from sqlalchemy import create_engine
+import sys
 import pandas as pd
 import re
 import nltk
@@ -48,8 +49,9 @@ def build_model():
 
 def evaluate_model(model, X_test, Y_test):
     preds = model.predict(X_test)
-    gridsearch_prediction_df = pd.DataFrame(data=gridsearch_preds, columns=Y_test.columns)
-
+    preds_df = pd.DataFrame(data=preds, columns=Y_test.columns)
+    for col in Y_test:
+        print(classification_report(Y_test[col], preds_df[col], labels=[0, 1]))
 
 def save_model(model, model_filepath):
     with open(model_filepath, 'wb') as f:
