@@ -49,6 +49,10 @@ def index():
     percentages = categories.sum()/len(categories)
     category_names = list(categories.columns)
     
+    #message lengths
+    lengths = ((df['message'].apply(len)/10).apply(np.floor)*10).value_counts()
+    lengths_df = lengths.rename_axis('msg_len').reset_index(name='counts')
+    lengths_df_sorted = lengths_df.sort_values(by='msg_len')
     
     graphs = [
         {
@@ -87,8 +91,34 @@ def index():
                 }
             }
         },
+        {
+            'data': [
+                Bar(
+                    x=lengths_df_sorted['counts'],
+                    y=lengths_df_sorted['msg_len']
+                )
+            ],
+
+            'layout': {
+                'title': 'Distribution of Message Lengths',
+                'yaxis': {
+                    'title': "Counts"
+                },
+                'xaxis': {
+                    'title': "Message Lengths"
+                }
+            }
+        },
         
     ]
+
+    
+    
+    
+    
+    
+    
+    
     
     # encode plotly graphs in JSON
     ids = ["graph-{}".format(i) for i, _ in enumerate(graphs)]
