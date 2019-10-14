@@ -16,6 +16,7 @@ from sklearn.metrics import classification_report
 from sklearn.model_selection import GridSearchCV
 
 def load_data(database_filepath):
+    #input is a string of database path, loads data from the path and divides the data to input and output variables for a machine learning pipeline
     engine = create_engine('sqlite:///{}'.format(database_filepath))
     df = pd.read_sql_table('cleaned_message_data', engine)
     X = df['message']
@@ -24,6 +25,7 @@ def load_data(database_filepath):
 
 
 def tokenize(text):
+    #input is a text that gets cleaned, tokenized and lemmatized
     text = text.lower()
     text = re.sub(r"[^a-z1-9]", " ", text)
     words = nltk.word_tokenize(text)
@@ -34,6 +36,7 @@ def tokenize(text):
 
 
 def build_model():
+    #builds a pipeline and a gridsearch model
     pipeline = Pipeline([
                 ('vect', CountVectorizer(tokenizer=tokenize)),
                 ('tfidf', TfidfTransformer()),
@@ -48,12 +51,14 @@ def build_model():
 
 
 def evaluate_model(model, X_test, Y_test):
+    #inputs a model and test data, predicts according to model and prints out evaluation for each category
     preds = model.predict(X_test)
     preds_df = pd.DataFrame(data=preds, columns=Y_test.columns)
     for col in Y_test:
         print(classification_report(Y_test[col], preds_df[col], labels=[0, 1]))
 
 def save_model(model, model_filepath):
+    #saves the model
     with open(model_filepath, 'wb') as f:
         pickle.dump(model, f)
 

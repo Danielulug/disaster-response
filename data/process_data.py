@@ -4,12 +4,14 @@ from sqlalchemy import create_engine
 import sys
 
 def load_data(messages_filepath, categories_filepath):
+    #in the desired filepaths for messages and categories respectively and returns a dataframe of the two data sources merged
     messages = pd.read_csv(messages_filepath)
     categories = pd.read_csv(categories_filepath)
     df = messages.merge(categories, on='id')
     return df
 
 def clean_data(df):
+    #input and output is a dataframe. the function rearranges the categories column and expands the column 
     categories = df['categories'].str.split(";",expand=True)
     row = categories.iloc[0]
     category_colnames = []
@@ -17,9 +19,7 @@ def clean_data(df):
         category_colnames.append(x.split("-")[0])
     categories.columns = category_colnames
     
-    for column in categories:
-
-
+    for column in categories: 
         categories[column] = categories[column].str[-1]
         categories[column] = categories[column].astype('int64')
     df = df.drop(['categories'], axis=1)
@@ -28,6 +28,7 @@ def clean_data(df):
     return df
 
 def save_data(df, database_filename):
+    #arguments dataframe and desired filename for the database. takes the data and saves it as a sql database
     engine = create_engine('sqlite:///{}'.format(database_filename))
     df.to_sql('cleaned_message_data', engine, index=False)
 
